@@ -13,7 +13,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                        )
 {
     m_wwiseEffect = std::make_unique<GameGainFX>();
-    m_channelConfig.SetStandard(AK_SPEAKER_SETUP_MONO);
+    m_channelConfig.SetStandard(AK_SPEAKER_SETUP_STEREO);
+    m_contiguousAudio = std::make_unique<std::vector<float>>();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -88,9 +89,8 @@ void AudioPluginAudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
     juce::ignoreUnused (sampleRate, samplesPerBlock);
+    m_contiguousAudio->resize(samplesPerBlock * getTotalNumInputChannels());
 }
 
 void AudioPluginAudioProcessor::releaseResources()
@@ -132,9 +132,16 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // TODO: Extend this for more channels. One channel for now.
+    // Set up contiguous data.
+    for (size_t i = 0; i < totalNumInputChannels; ++i)
+    {
+        size_t offset = i * buffer.getNumSamples();
+        std::memcpy(m_contiguousAudio->data() + offset, buffer.getWritePointer(i),
+            buffer.getNumSamples() * sizeof(float));
+    }
+
     m_ioBuffer.AttachContiguousDeinterleavedData(
-        buffer.getWritePointer(0),
+        m_contiguousAudio->data(),
         static_cast<AkUInt16>(buffer.getNumSamples()),
         static_cast<AkUInt16>(buffer.getNumSamples()),
         m_channelConfig
@@ -145,10 +152,13 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    for (size_t i = 0; i < totalNumInputChannels; ++i)
     {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
+        std::memcpy(buffer.getWritePointer(i), m_ioBuffer.GetChannel(i), 
+            buffer.getNumSamples() * sizeof(float));
+
+        // auto* channelData = buffer.getWritePointer (i);
+        // juce::ignoreUnused (channelData);
     }
 }
 
