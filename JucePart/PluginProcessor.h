@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "GameGainFX.h"
+#include <AK/SoundEngine/Common/AkCommonDefs.h>
 
 //==============================================================================
 class AudioPluginAudioProcessor final : public juce::AudioProcessor
@@ -46,5 +47,7 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
-    std::unique_ptr<GameGainFX> m_WwiseEffect;
+    std::unique_ptr<GameGainFX> m_wwiseEffect;
+    std::unique_ptr<AkAudioBuffer> m_ioBuffer;
+    AkChannelConfig m_channelConfig;
 };
