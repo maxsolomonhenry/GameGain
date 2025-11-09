@@ -93,7 +93,7 @@ void GameGainFX::Execute(AkAudioBuffer* io_pBuffer)
         uFramesProcessed = 0;
         while (uFramesProcessed < io_pBuffer->uValidFrames)
         {
-            // Execute DSP in-place here
+            pBuf[uFramesProcessed] *= 0.5f;
             ++uFramesProcessed;
         }
     }
