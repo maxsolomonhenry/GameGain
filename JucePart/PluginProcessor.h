@@ -48,6 +48,6 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
     std::unique_ptr<GameGainFX> m_wwiseEffect;
-    std::unique_ptr<AkAudioBuffer> m_ioBuffer;
+    AkAudioBuffer m_ioBuffer;
     AkChannelConfig m_channelConfig;
 };

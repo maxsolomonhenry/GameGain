@@ -13,7 +13,6 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                        )
 {
     m_wwiseEffect = std::make_unique<GameGainFX>();
-    m_ioBuffer = std::make_unique<AkAudioBuffer>();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -133,14 +132,14 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     // TODO: Extend this for more channels. One channel for now.
-    m_ioBuffer->AttachContiguousDeinterleavedData(
+    m_ioBuffer.AttachContiguousDeinterleavedData(
         buffer.getWritePointer(0), 
         static_cast<AkUInt16>(buffer.getNumSamples()), 
         static_cast<AkUInt16>(buffer.getNumSamples()), 
         m_channelConfig
     );
 
-    m_wwiseEffect->Execute(m_ioBuffer.get());
+    m_wwiseEffect->Execute(&m_ioBuffer);
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
